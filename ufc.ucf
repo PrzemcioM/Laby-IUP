@@ -1,0 +1,44 @@
+#########################################################################################
+# Clock:
+NET "clk_i" LOC = "T9" ; # 50 MHz clock
+#########################################################################################
+
+#########################################################################################
+# Seven-segment LED display:
+NET "led7_an_o<3>" LOC = "E13" ; # leftmost digit, active low
+NET "led7_an_o<2>" LOC = "F14" ; # active low
+NET "led7_an_o<1>" LOC = "G14" ; # active low
+NET "led7_an_o<0>" LOC = "d14" ; # rightmost digit, active low
+#
+NET "led7_seg_o<0>" LOC = "E14" ; # segment 'a', active low
+NET "led7_seg_o<1>" LOC = "G13" ; # segment 'b', active low
+NET "led7_seg_o<2>" LOC = "N15" ; # segment 'c', active low
+NET "led7_seg_o<3>" LOC = "P15" ; # segment 'd', active low
+NET "led7_seg_o<4>" LOC = "R16" ; # segment 'e', active low
+NET "led7_seg_o<5>" LOC = "F13" ; # segment 'f', active low
+NET "led7_seg_o<6>" LOC = "N16" ; # segment 'g', active low
+NET "led7_seg_o<7>" LOC = "P16" ; # segment 'dp', active low
+#########################################################################################
+#########################################################################################
+# Slide switches:
+# sw7 Sw6 sw5 sw4 sw3 sw2 sw1 sw0
+NET "sw_i<0>" LOC = "F12" ; # active high when in UP position
+NET "sw_i<1>" LOC = "G12" ; # active high when in UP position
+NET "sw_i<2>" LOC = "H14" ; # active high when in UP position
+NET "sw_i<3>" LOC = "H13" ; # active high when in UP position
+NET "sw_i<4>" LOC = "J14" ; # active high when in UP position
+NET "sw_i<5>" LOC = "J13" ; # active high when in UP position
+NET "sw_i<6>" LOC = "K14" ; # active high when in UP position
+NET "sw_i<7>" LOC = "K13" ; # active high when in UP position
+#########################################################################################
+
+#########################################################################################
+# Push-buttons:
+# @ @ @ @
+# btn3 btn2 btn1 btn0
+NET "btn_i<0>" LOC = "M13" ; # active high
+NET "btn_i<1>" LOC = "M14" ; # active high
+NET "btn_i<2>" LOC = "L13" ; # active high
+NET "btn_i<3>" LOC = "L14" ; # active high
+#########################################################################################
+
