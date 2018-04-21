@@ -23,24 +23,25 @@ signal digit : std_logic_vector (31 downto 0) := "000000110000001000000011000000
 type time_array is array (0 to 4) of integer range 0 to 9;
 signal cur_time : time_array := (others => 0);
 
-component divider
+component dzielnik
     Port ( clk_i : in std_logic;
            rst_i : in std_logic;
-           clk_o : out std_logic);
+           clk_dz : out std_logic);
 end component;
 
-component display
-    Port ( clk_i : in std_logic;
-           rst_i : in std_logic;
-           digit_i : in std_logic_vector (31 downto 0) := "00000011000000100000001100000011";
-           led7_an_o : out std_logic_vector (3 downto 0) := "1111";
-           led7_seg_o : out std_logic_vector (7 downto 0) := "11111111");
+component wyswietlacz
+    Port (
+            clk_wys : in std_logic := '0' ;
+            rst_i : in std_logic := '0';
+            led7_seg_wysw : out std_logic_vector (7 downto 0 ) := "00000000" ;
+            led7_an_wysw  : out std_logic_vector (3 downto 0) := "0000" ;
+            digit_i_wysw : in std_logic_vector( 31 downto 0 ) := ( others => '0' )
 end component;
 
 component debouncer
-    Port ( key_i : in STD_LOGIC;
+    Port ( btn_i : in STD_LOGIC;
               clk_i : in STD_LOGIC;
-           key_stable_o : out STD_LOGIC);
+           btn_stable_port : out STD_LOGIC);
 end component;
 
 function convert_digit_to_7seg(data_i: integer range 0 to 9) return std_logic_vector is
