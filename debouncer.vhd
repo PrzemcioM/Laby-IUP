@@ -23,7 +23,7 @@ begin
 	begin
 	  if rising_edge(clk_i) then
 		 tmp <= btn_i;
-		 btn_synch <= q;
+		 btn_synch <= tmp;
 
 		 if (btn_synch = btn_stable_signal) then	--no go if input = '0' and not stable
 			delay_cntr := 0;
