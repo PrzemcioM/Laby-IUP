@@ -39,6 +39,6 @@ begin
 
 	  end if;
 	end process;
-	btn_stable_port <= key_stable_signal; 	--signal of stabilizaton is outputted
+	btn_stable_port <= btn_stable_signal; 	--signal of stabilizaton is outputted
 end Behavioral;
 
