@@ -6,7 +6,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
-entity dzielnik is generic ( constant CntSize : integer := 100); -- aby 1kHz - 50000
+entity dzielnik is generic ( constant CntSize : integer := 50000); -- aby 1kHz - 50000
 						port ( 
 							rst_i : in std_logic := '0';
 							clk_i : in std_logic := '0' ;
@@ -48,6 +48,59 @@ end Behavioral;
 
 -------------------------- koniec dzielnika ------------------------- 
 
+-------------------------- debouncer --------------------------------
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity debouncer is
+
+Port (
+		btn_i : in std_logic ;
+		clk_i : in std_logic ;
+		
+		btn_stable_port : out std_logic 
+		);
+end debouncer ;
+
+architecture Behavioral of debouncer is 
+
+signal tmp : std_logic := '0' ;
+signal btn_synch : std_logic := '0' ;
+signal btn_stable_signal : std_logic := '0' ;
+
+begin 
+	process (clk_i) is
+	
+	variable delay_cntr : integer range 0 to 63 := 0;
+	
+	begin 
+		if rising_edge(clk_i) then
+		tmp <= btn_i ;
+		btn_synch <= tmp;
+		
+		if ( btn_synch = btn_stable_signal ) then
+			delay_cntr := 0;
+		else 
+			delay_cntr := delay_cntr + 1;
+		end if;
+		
+		if ( delay_cntr = 63 ) then
+			btn_stable_signal <= btn_synch ;
+			delay_cntr := 0;
+			
+		end if;
+	end if;
+	end process;
+	
+	btn_stable_port <= btn_stable_signal ;
+	
+	end Behavioral;
+	
+	
+-------------------------- koniec debouncer -------------------------
 
 -------------------------- wyswietlacz ------------------------------
 
@@ -61,8 +114,8 @@ entity wyswietlacz is
 				clk_wys : in std_logic := '0' ;
 			   rst_i : in std_logic := '0';
 	
-				led7_seg_wysw : out std_logic_vector (7 downto 0 ) := "00000000" ;
-				led7_an_wysw  : out std_logic_vector (3 downto 0) := "0000" ;
+				led7_seg_wysw : out std_logic_vector (7 downto 0 ) := "11111111" ;
+				led7_an_wysw  : out std_logic_vector (3 downto 0) := "1111" ;
 				
 				digit_i_wysw : in std_logic_vector( 31 downto 0 ) := ( others => '0' ) 
 				
@@ -73,6 +126,7 @@ end wyswietlacz;
 architecture Behavioral of wyswietlacz is
 
 shared variable licznik_multi : integer  := 0 ;
+shared variable poczatek_multi : integer := 0 ;
 
 	begin
 				
@@ -84,7 +138,7 @@ shared variable licznik_multi : integer  := 0 ;
 				licznik_multi := 0 ;
 				
 			elsif rising_edge( clk_wys ) then
-						
+
 			if licznik_multi = 0 then
 				led7_seg_wysw <= digit_i_wysw ( 7 downto 0 );
 				led7_an_wysw <= ( 0 => '0' , others => '1' );
@@ -102,7 +156,9 @@ shared variable licznik_multi : integer  := 0 ;
 				led7_an_wysw <= ( 3 => '0' , others => '1' );
 								
 			end if;
-				
+			
+		--end if;
+		
 				licznik_multi  := licznik_multi  + 1 ;
 				 
 				if licznik_multi = 4 then
@@ -133,8 +189,8 @@ entity Modul is
 	   rst_i : in std_logic := '0' ;
 		clk_i : in std_logic;
 	
-		led7_seg_o : out std_logic_vector (7 downto 0 ) := "00000000" ;
-		led7_an_o  : out std_logic_vector (3 downto 0)	:= "0000" 	
+		led7_seg_o : out std_logic_vector (7 downto 0 ) := "11111111" ;
+		led7_an_o  : out std_logic_vector (3 downto 0)	:= "1111" 	
 		
 		);
 	
@@ -154,8 +210,8 @@ architecture Behavioral of Modul is
 	component wyswietlacz is 
 		port (
 				rst_i : in std_logic;
-				led7_seg_wysw : out std_logic_vector (7 downto 0 );
-				led7_an_wysw  : out std_logic_vector (3 downto 0);
+				led7_seg_wysw : out std_logic_vector (7 downto 0 ) := "11111111" ;
+				led7_an_wysw  : out std_logic_vector (3 downto 0) := "1111" ;
 				
 				clk_wys : in std_logic ;
 				
@@ -166,8 +222,19 @@ architecture Behavioral of Modul is
 				
 	end component wyswietlacz;
 	
+	component debouncer is
+		port (
+		btn_i : in std_logic ;
+		clk_i : in std_logic ;
+		
+		btn_stable_port : out std_logic 
+		
+		);
+		
+end component debouncer ;
+
 	signal clk : std_logic ;
-	signal digit : std_logic_vector ( 31 downto 0 ) := "00000000000000000000000000000000";
+	signal digit : std_logic_vector ( 31 downto 0 ) := "11111111111111111111111111111111";
 	signal wektor_zdekodowany : std_logic_vector  ( 6 downto 0 ) := "0000000" ;
 	signal ready: std_logic := '1' ;
 
@@ -192,6 +259,11 @@ begin
 			
 			digit_i_wysw => digit			
 		);
+		
+		--deb : debouncer port map (
+		
+			
+		--);
 				
 	
 	----------------------------
@@ -256,19 +328,15 @@ begin
 			if rising_edge ( clk ) then
 					if   btn_i(0) = '1' and ready = '1' then		
 						digit ( 6 downto 0 ) <= wektor_zdekodowany ( 6 downto 0 );
-							digit(7) <= not sw_i(4); 
 							ready <= '0' ;
 					elsif  btn_i(1) = '1'  and ready = '1' then
 						digit ( 14 downto 8 ) <= wektor_zdekodowany ( 6 downto 0 );
-							digit(15) <= not sw_i(5); 
 								ready <= '0' ;
 					elsif  btn_i(2) = '1' and ready = '1' then
 						digit( 22 downto 16 ) <= wektor_zdekodowany ( 6 downto 0 );
-							digit(23) <= not sw_i(6); 
 								ready <= '0' ;
 					elsif btn_i(3) = '1'  and ready = '1' then
 						digit ( 30 downto 24 ) <= wektor_zdekodowany ( 6 downto 0 );
-							digit(31) <= not sw_i(7); 
 								ready <= '0' ;
 					end if;
 					
@@ -277,7 +345,11 @@ begin
 			end if;
 		end if;
 	end process pamiec;
-
+	
+		digit(7) <= not sw_i(4); 
+		digit(15) <= not sw_i(5); 
+		digit(23) <= not sw_i(6); 
+		digit(31) <= not sw_i(7);
 	
 end Behavioral;
 
