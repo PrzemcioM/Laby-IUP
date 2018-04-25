@@ -126,7 +126,6 @@ end wyswietlacz;
 architecture Behavioral of wyswietlacz is
 
 shared variable licznik_multi : integer  := 0 ;
-shared variable poczatek_multi : integer := 0 ;
 
 	begin
 				
@@ -157,8 +156,6 @@ shared variable poczatek_multi : integer := 0 ;
 								
 			end if;
 			
-		--end if;
-		
 				licznik_multi  := licznik_multi  + 1 ;
 				 
 				if licznik_multi = 4 then
@@ -184,8 +181,7 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 entity Modul is
 	port (
 	  
-		btn_i : in std_logic_vector( 3 downto 0 ) := "0000" ;
-		sw_i  : in std_logic_vector( 7 downto 0 ) := "00000000" ;
+		start_stop_button_i : in std_logic := '0' ;
 	   rst_i : in std_logic := '0' ;
 		clk_i : in std_logic;
 	
@@ -234,16 +230,22 @@ architecture Behavioral of Modul is
 end component debouncer ;
 
 	signal clk : std_logic ;
-	signal digit : std_logic_vector ( 31 downto 0 ) := "11111111111111111111111111111111";
-	signal wektor_zdekodowany : std_logic_vector  ( 6 downto 0 ) := "0000000" ;
-	signal ready: std_logic := '1' ;
+	signal digit : std_logic_vector ( 31 downto 0 ) := "11000000010000001100000011000000";
+																		
+	signal licznik1 : integer := 0 ;
+	signal licznik2 : integer := 0 ;
+	signal licznik3 : integer := 0 ;
+	signal licznik4 : integer := 0 ;
+	
+	signal btn_mod : std_logic := '0' ;
+	signal stan : integer := 0 ;
 
 begin
 
 	--------- PORT MAP ---------
 	
 		dziel : dzielnik port map ( 
-			rst_i => '0' ,
+			rst_i => rst_i  ,
 			clk_i => clk_i,
 			clk_dz => clk 
 	
@@ -251,7 +253,7 @@ begin
 		
 		wysw: wyswietlacz port map (
 		
-			rst_i => '0' ,
+			rst_i => rst_i ,
 			led7_seg_wysw => led7_seg_o ,
 			led7_an_wysw => led7_an_o ,
 			
@@ -260,97 +262,109 @@ begin
 			digit_i_wysw => digit			
 		);
 		
-		--deb : debouncer port map (
+		deb : debouncer port map (
 		
+			btn_i => start_stop_button_i ,
+			clk_i => clk_i ,
+		
+			btn_stable_port => btn_mod  
 			
-		--);
+		);
 				
 	
 	----------------------------
-
-	enkoder : process ( sw_i  )
+	
+	kontrola : process ( btn_mod )
 		begin
 		
-				if sw_i ( 3 downto 0 ) = "0000" then  				-- 4 mlodsze to 4 bitowa liczba 		
-					wektor_zdekodowany ( 6 downto 0 ) <= "0100000" ;     --( 6 => '1' , others => '0' )		-- 0 
-				
-				elsif sw_i( 3 downto 0 ) = "0001" then			-- 1  
-					wektor_zdekodowany ( 6 downto 0 ) <= "1111001" ; 							--( 1,2 => '0' , others => '1' );
-				
-				elsif sw_i ( 3 downto 0 ) = "0010" then			-- 2 
-					wektor_zdekodowany ( 6 downto 0 ) <= "0100100" ; 							--( 5,2 => '1' , others => '0' );
-					
-				elsif sw_i ( 3 downto 0 ) = "0011" then			-- 3 
-					wektor_zdekodowany ( 6 downto 0 ) <= "0110000" ; 							--( 5,4 => '1' , others => '0' );
-
-				elsif sw_i( 3 downto 0 ) = "0100" then			-- 4 
-					wektor_zdekodowany ( 6 downto 0 ) <= "0011001" ; 							--( 0,3,4 => '1' , others => '0' );
-
-				elsif sw_i( 3 downto 0 ) = "0101" then			-- 5 
-					wektor_zdekodowany ( 6 downto 0 ) <= "0010010"; 							--( 1,4 => '1' , others => '0' );
-
-				elsif sw_i( 3 downto 0 ) = "0110" then			-- 6 
-					wektor_zdekodowany ( 6 downto 0 ) <= "0000010" ;  						--( 1 => '1' , others => '0' );
-
-				elsif sw_i ( 3 downto 0 ) = "0111" then			-- 7 
-					wektor_zdekodowany ( 6 downto 0 ) <= "1111000" ; 							--( 0,1,2 => '0' , others => '1' );
-
-				elsif sw_i ( 3 downto 0 ) = "1000" then			-- 8 
-					wektor_zdekodowany ( 6 downto 0 ) <= "0000000" ; 							--(  others => '0' );
-
-				elsif sw_i ( 3 downto 0 ) = "1001" then			-- 9 
-					wektor_zdekodowany ( 6 downto 0 ) <= "0010000" ;  						--( 4 => '1' , others => '0' );
-
-				elsif sw_i( 3 downto 0 ) = "1010" then			-- A
-					wektor_zdekodowany ( 6 downto 0 ) <= "0001000" ; 							--( 3 => '1' , others => '0' );
-
-				elsif sw_i( 3 downto 0 ) = "1011" then			-- B
-					wektor_zdekodowany ( 6 downto 0 ) <= "0000011" ;							-- ( 0,1 => '1' , others => '0' );
-
-				elsif sw_i ( 3 downto 0 ) = "1100" then			-- C
-					wektor_zdekodowany( 6 downto 0 ) <= "0111001" ; 							--( 1,2,6 => '0' , others => '1' );
-
-				elsif sw_i ( 3 downto 0 ) = "1101" then			-- D
-					wektor_zdekodowany( 6 downto 0 ) <= "0100001" ; 							--( 0,5 => '1' , others => '0' );
-
-				elsif sw_i ( 3 downto 0 ) = "1110" then			-- E
-					wektor_zdekodowany ( 6 downto 0 ) <= "0000110" ; 							--( 1,2 => '1' , others => '0' );
-
-				elsif sw_i ( 3 downto 0 ) = "1111" then			-- F
-					wektor_zdekodowany ( 6 downto 0 ) <= "0001110" ; 							--( 1,2,3 => '1' , others => '0' );				
-						
-				end if;
-				
-	end process enkoder ;	
-
-	pamiec : process ( clk ) 
-		begin
-			if rising_edge ( clk ) then
-					if   btn_i(0) = '1' and ready = '1' then		
-						digit ( 6 downto 0 ) <= wektor_zdekodowany ( 6 downto 0 );
-							ready <= '0' ;
-					elsif  btn_i(1) = '1'  and ready = '1' then
-						digit ( 14 downto 8 ) <= wektor_zdekodowany ( 6 downto 0 );
-								ready <= '0' ;
-					elsif  btn_i(2) = '1' and ready = '1' then
-						digit( 22 downto 16 ) <= wektor_zdekodowany ( 6 downto 0 );
-								ready <= '0' ;
-					elsif btn_i(3) = '1'  and ready = '1' then
-						digit ( 30 downto 24 ) <= wektor_zdekodowany ( 6 downto 0 );
-								ready <= '0' ;
-					end if;
-					
-			if btn_i = "0000" then
-				ready <= '1';
+	if btn_mod = '1' then	
+		
+		stan <= stan + 1;
+			if stan = 3 then
+				stan <= 0;
 			end if;
-		end if;
-	end process pamiec;
-	
-		digit(7) <= not sw_i(4); 
-		digit(15) <= not sw_i(5); 
-		digit(23) <= not sw_i(6); 
-		digit(31) <= not sw_i(7);
-	
+	end if;
+		
+	end process kontrola ;
+
+
+	licznik : process ( clk )
+		begin
+			
+			if rst_i = '1' or stan = 3 then
+				licznik1 <= 0;
+				licznik2 <= 0;
+				licznik3 <= 0;
+				licznik4 <= 0;
+				digit <= "11000000010000001100000011000000";			-- 00.00
+			
+			elsif rising_edge ( clk ) and stan = 1 then				-- uzupelnic o przycisk btn_mod
+				
+				case licznik1 is
+					when 0 => digit ( 6 downto 0 ) <= "0100000" ;		-- 0 -> ( 6 => '1' , others => '0' )
+					when 1 => digit ( 6 downto 0 ) <= "1111001" ;
+					when 2 => digit ( 6 downto 0 ) <= "0100100" ;
+					when 3 => digit ( 6 downto 0 ) <= "0110000" ;
+					when 4 => digit ( 6 downto 0 ) <= "0011001" ;
+					when 5 => digit ( 6 downto 0 ) <= "0010010" ;
+					when 6 => digit ( 6 downto 0 ) <= "0000010" ;
+					when 7 => digit ( 6 downto 0 ) <= "1111000" ;
+					when 8 => digit ( 6 downto 0 ) <= "0000000" ;
+					when 9 => digit ( 6 downto 0 ) <= "0010000" ;
+					when others => licznik1 <= 0  ;
+										licznik1 <= licznik1 + 1;
+				end case ;	
+				
+				case licznik2 is
+					when 0 => digit ( 14 downto 8 ) <= "0100000" ;						-- do digita
+					when 1 => digit ( 14 downto 8 ) <= "1111001" ;
+					when 2 => digit ( 14 downto 8 ) <= "0100100" ;
+					when 3 => digit ( 14 downto 8 ) <= "0110000" ;
+					when 4 => digit ( 14 downto 8 ) <= "0011001" ;
+					when 5 => digit ( 14 downto 8 ) <= "0010010" ;
+					when 6 => digit ( 14 downto 8 ) <= "0000010" ;
+					when 7 => digit ( 14 downto 8 ) <= "1111000" ;
+					when 8 => digit ( 14 downto 8 ) <= "0000000" ;
+					when 9 => digit ( 14 downto 8 ) <= "0010000" ;
+					when others => licznik2 <= 0 ;
+										licznik3 <= licznik3 + 1;
+				end case ;	
+				
+				case licznik3 is
+					when 0 => digit ( 22 downto 16 ) <= "0100000" ;						-- do digita
+					when 1 => digit ( 22 downto 16 ) <= "1111001" ;
+					when 2 => digit ( 22 downto 16 ) <= "0100100" ;
+					when 3 => digit ( 22 downto 16 ) <= "0110000" ;
+					when 4 => digit ( 22 downto 16 ) <= "0011001" ;
+					when 5 => digit ( 22 downto 16 ) <= "0010010" ;
+					when 6 => digit ( 22 downto 16 ) <= "0000010" ;
+					when 7 => digit ( 22 downto 16 ) <= "1111000" ;
+					when 8 => digit ( 22 downto 16 ) <= "0000000" ;
+					when 9 => digit ( 22 downto 16 ) <= "0010000" ;
+					when others => licznik3 <= 0 ;
+										licznik4 <= licznik4 + 1;	
+				end case;
+					
+				case licznik4 is
+					when 0 => digit ( 30 downto 24  ) <= "0100000" ;						-- do digita
+					when 1 => digit ( 30 downto 24  ) <= "1111001" ;
+					when 2 => digit ( 30 downto 24  ) <= "0100100" ;
+					when 3 => digit ( 30 downto 24  ) <= "0110000" ;
+					when 4 => digit ( 30 downto 24  ) <= "0011001" ;
+					when 5 => digit ( 30 downto 24  ) <= "0010010" ;
+					when others => digit(31 downto 0) <= "11011111010111111101111111011111";
+																	licznik4 <= 0;
+
+				end case;		
+				
+				licznik1 <= licznik1 + 1 ;
+				
+			end if;
+					
+					digit(23) <= '0' ; 
+		
+		end process licznik ;
+
 end Behavioral;
 
 
