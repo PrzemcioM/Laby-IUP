@@ -182,7 +182,7 @@ entity Modul is
 	  
 		start_stop_button_i : in std_logic := '0' ;
 	   rst_i : in std_logic := '0' ;
-		clk_i : in std_logic;
+		clk_i : in std_logic := '0' ;
 	
 		led7_seg_o : out std_logic_vector (7 downto 0 ) := "11111111" ;
 		led7_an_o  : out std_logic_vector (3 downto 0)	:= "1111" 	
@@ -246,7 +246,7 @@ begin
 	--------- PORT MAP ---------
 	
 		dzielnik_1k : dzielnik 
-		generic map ( 50 )				-- POD TESTBENCH 50 w nawias | do symulacji 50000
+		generic map ( 50000 )				-- POD TESTBENCH 50 w nawias | do symulacji 50000
 		port map ( 				-- dzielnik 1kHz , domyslny do wyswietlacza
 			rst_i => rst_i  ,
 			clk_i => clk_i,
@@ -275,7 +275,7 @@ begin
 		);
 		
 		dzielnik_100hz : dzielnik 
-			generic map ( 500 )				-- POD TESTBENCH 500 w nawias | do symulacji 500000
+			generic map ( 5000000 )				-- POD TESTBENCH 500 w nawias | do symulacji 500000
 		port map (
 			rst_i => rst_i  ,
 			clk_i => clk_i,
@@ -298,22 +298,21 @@ begin
 		
 	end process kontrola ;
 
-	licznik : process ( clk_100hz )
+	licznik : process ( clk_100hz , rst_i , stan )
 		begin
 			
-			if rst_i = '1' or stan = 0 then
+			if rst_i = '1' or stan = 0 then 
 				licznik1 <= 0;
 				licznik2 <= 0;
 				licznik3 <= 0;
 				licznik4 <= 0;
 				digit <= "11000000010000001100000011000000";			-- 00.00
 			
-			elsif rising_edge ( clk_100hz ) and stan = 1 then				-- uzupelnic o przycisk btn_mod
-				
-			if licznik4 <= 5 then
+			elsif rising_edge ( clk_100hz ) then				-- uzupelnic o przycisk btn_mod
+		
 			
 				case licznik1 is														-- zapalamy stanem niskim !
-					when 0 => digit ( 6 downto 0 ) <= "1000000" ;		-- 0 -> ( 6 => '1' , others => '0' )
+					when 0 => digit ( 6 downto 0 ) <= "1000000" ;		-- 0 -> ( 6 => '1' , others =>'0' )
 					when 1 => digit ( 6 downto 0 ) <= "1111001" ;		-- 1 -> ( 1,2 => '1' , oth 0
 					when 2 => digit ( 6 downto 0 ) <= "0100100" ;		-- 2 -> ( 5,2 => '1' , oth 0 
 					when 3 => digit ( 6 downto 0 ) <= "0110000" ;		-- 3 -> ( 4,5 => '1', oth 0 
@@ -324,7 +323,7 @@ begin
 					when 8 => digit ( 6 downto 0 ) <= "0000000" ;		-- 8 -> ( oth 0
 					when 9 => digit ( 6 downto 0 ) <= "0010000" ;		-- 9 -> ( 4
 					when others => licznik1 <= 0;
-										licznik2 <= licznik2 + 1;
+									licznik2 <= licznik2 + 1;
 					end case ;	
 						
 				case licznik2 is
@@ -366,10 +365,7 @@ begin
 					when 5 => digit ( 30 downto 24  ) <= "0010010" ;
 					when others => digit(31 downto 0) <= "10111111001111111011111110111111";	-- --.-- 					
 
-				end case;		
-			
-			else digit(31 downto 0) <= "10111111001111111011111110111111" ;
-			end if ; 											-- koniec if licznik4 <= 5 
+				end case;		 
 			
 				licznik1 <= licznik1 + 1 ;
 				
