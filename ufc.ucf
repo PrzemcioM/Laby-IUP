@@ -20,25 +20,12 @@ NET "led7_seg_o<6>" LOC = "N16" ; # segment 'g', active low
 NET "led7_seg_o<7>" LOC = "P16" ; # segment 'dp', active low
 #########################################################################################
 #########################################################################################
-# Slide switches:
-# sw7 Sw6 sw5 sw4 sw3 sw2 sw1 sw0
-NET "sw_i<0>" LOC = "F12" ; # active high when in UP position
-NET "sw_i<1>" LOC = "G12" ; # active high when in UP position
-NET "sw_i<2>" LOC = "H14" ; # active high when in UP position
-NET "sw_i<3>" LOC = "H13" ; # active high when in UP position
-NET "sw_i<4>" LOC = "J14" ; # active high when in UP position
-NET "sw_i<5>" LOC = "J13" ; # active high when in UP position
-NET "sw_i<6>" LOC = "K14" ; # active high when in UP position
-NET "sw_i<7>" LOC = "K13" ; # active high when in UP position
-#########################################################################################
-
-#########################################################################################
 # Push-buttons:
-# @ @ @ @
-# btn3 btn2 btn1 btn0
-NET "btn_i<0>" LOC = "M13" ; # active high
-NET "btn_i<1>" LOC = "M14" ; # active high
-NET "btn_i<2>" LOC = "L13" ; # active high
-NET "btn_i<3>" LOC = "L14" ; # active high
+NET "rst_i" LOC = "L14" ; # BTN3 active high
 #########################################################################################
 
+#########################################################################################
+# PS2 port:
+NET "ps2_clk_i" LOC = "M16" ; #clock from PS/2
+NET "ps2_data_i" LOC = "M15" ; #PS/2 data
+#########################################################################################
