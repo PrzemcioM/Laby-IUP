@@ -240,13 +240,14 @@ end component debouncer ;
 	
 	signal btn_mod : std_logic := '0' ;
 	signal stan : integer := 0 ;
-
+	signal wcisnieto : std_logic := '0' ;
+	
 begin
 
 	--------- PORT MAP ---------
 	
 		dzielnik_1k : dzielnik 
-		generic map ( 50000 )				-- POD TESTBENCH 50 w nawias | do symulacji 50000
+		generic map ( 50 )				-- POD TESTBENCH 50 w nawias | do symulacji 50000
 		port map ( 				-- dzielnik 1kHz , domyslny do wyswietlacza
 			rst_i => rst_i  ,
 			clk_i => clk_i,
@@ -275,7 +276,7 @@ begin
 		);
 		
 		dzielnik_100hz : dzielnik 
-			generic map ( 5000000 )				-- POD TESTBENCH 500 w nawias | do symulacji 500000
+			generic map ( 500 )				-- POD TESTBENCH 500 w nawias | do symulacji 500000
 		port map (
 			rst_i => rst_i  ,
 			clk_i => clk_i,
@@ -284,24 +285,22 @@ begin
 			);
 			
 	----------------------------
-	
-	kontrola : process ( btn_mod )
-		begin
-		
-	if btn_mod = '1' then	
-		
-		stan <= stan + 1;
-			if stan = 3 then
-				stan <= 0;
-			end if;
-	end if;
-		
-	end process kontrola ;
 
-	licznik : process ( clk_100hz , rst_i , stan )
+	licznik : process ( clk_100hz , rst_i )
 		begin
 			
-			if rst_i = '1' or stan = 0 then 
+			if stan = 3 then
+				stan <= 0 ;	
+			end if;
+			
+			if  btn_mod = '1' and wcisnieto = '0' then
+				stan <= stan + 1;
+				wcisnieto <= '1' ;
+			elsif btn_mod = '0' and wcisnieto = '1' then
+				wcisnieto <= '0';
+			end if;
+			
+			if rst_i = '1' or stan = 0 or stan = 3 then 
 				licznik1 <= 0;
 				licznik2 <= 0;
 				licznik3 <= 0;
@@ -310,64 +309,73 @@ begin
 			
 			elsif rising_edge ( clk_100hz ) then				-- uzupelnic o przycisk btn_mod
 		
-			
-				case licznik1 is														-- zapalamy stanem niskim !
-					when 0 => digit ( 6 downto 0 ) <= "1000000" ;		-- 0 -> ( 6 => '1' , others =>'0' )
-					when 1 => digit ( 6 downto 0 ) <= "1111001" ;		-- 1 -> ( 1,2 => '1' , oth 0
-					when 2 => digit ( 6 downto 0 ) <= "0100100" ;		-- 2 -> ( 5,2 => '1' , oth 0 
-					when 3 => digit ( 6 downto 0 ) <= "0110000" ;		-- 3 -> ( 4,5 => '1', oth 0 
-					when 4 => digit ( 6 downto 0 ) <= "0011001" ;		-- 4 -> ( 0,3,4 => '1' , oth 0
-					when 5 => digit ( 6 downto 0 ) <= "0010010" ;		-- 5 -> ( 1,4 
-					when 6 => digit ( 6 downto 0 ) <= "0000010" ;		-- 6 -> ( 1 
-					when 7 => digit ( 6 downto 0 ) <= "1111000" ;		-- 7 -> ( 0,1,2
-					when 8 => digit ( 6 downto 0 ) <= "0000000" ;		-- 8 -> ( oth 0
-					when 9 => digit ( 6 downto 0 ) <= "0010000" ;		-- 9 -> ( 4
-					when others => licznik1 <= 0;
-									licznik2 <= licznik2 + 1;
-					end case ;	
+					if stan = 1 then
+						case licznik1 is														-- zapalamy stanem niskim !
+							when 0 => digit ( 6 downto 0 ) <= "1000000" ;
+								licznik1 <= licznik1 + 1 ; 				-- 0 -> ( 6 => '1' , others =>'0' )
+							when 1 => digit ( 6 downto 0 ) <= "1111001" ;		-- 1 -> ( 1,2 => '1' , oth 0
+								licznik1 <= licznik1 + 1 ;
+							when 2 => digit ( 6 downto 0 ) <= "0100100" ;		-- 2 -> ( 5,2 => '1' , oth 0
+								licznik1 <= licznik1 + 1 ; 
+							when 3 => digit ( 6 downto 0 ) <= "0110000" ;		-- 3 -> ( 4,5 => '1', oth 0 
+								licznik1 <= licznik1 + 1 ; 
+							when 4 => digit ( 6 downto 0 ) <= "0011001" ;		-- 4 -> ( 0,3,4 => '1' , oth 0
+								licznik1 <= licznik1 + 1 ; 
+							when 5 => digit ( 6 downto 0 ) <= "0010010" ;		-- 5 -> ( 1,4 
+								licznik1 <= licznik1 + 1 ; 
+							when 6 => digit ( 6 downto 0 ) <= "0000010" ;		-- 6 -> ( 1 
+								licznik1 <= licznik1 + 1 ; 
+							when 7 => digit ( 6 downto 0 ) <= "1111000" ;		-- 7 -> ( 0,1,2
+								licznik1 <= licznik1 + 1 ; 
+							when 8 => digit ( 6 downto 0 ) <= "0000000" ;		-- 8 -> ( oth 0
+								licznik1 <= licznik1 + 1 ; 
+							when 9 => digit ( 6 downto 0 ) <= "0010000" ;		-- 9 -> ( 4
+								licznik1 <= licznik1 + 1 ; 
+							when others => licznik1 <= 0;
+											licznik2 <= licznik2 + 1;
+							end case ;	
+								
+						case licznik2 is
+							when 0 => digit ( 14 downto 8 ) <= "1000000" ;						-- do digita
+							when 1 => digit ( 14 downto 8 ) <= "1111001" ;
+							when 2 => digit ( 14 downto 8 ) <= "0100100" ;
+							when 3 => digit ( 14 downto 8 ) <= "0110000" ;
+							when 4 => digit ( 14 downto 8 ) <= "0011001" ;
+							when 5 => digit ( 14 downto 8 ) <= "0010010" ;
+							when 6 => digit ( 14 downto 8 ) <= "0000010" ;
+							when 7 => digit ( 14 downto 8 ) <= "1111000" ;
+							when 8 => digit ( 14 downto 8 ) <= "0000000" ;
+							when 9 => digit ( 14 downto 8 ) <= "0010000" ;
+							when others => licznik2 <= 0 ;
+												licznik3 <= licznik3 + 1;
+						end case ;	
 						
-				case licznik2 is
-					when 0 => digit ( 14 downto 8 ) <= "1000000" ;						-- do digita
-					when 1 => digit ( 14 downto 8 ) <= "1111001" ;
-					when 2 => digit ( 14 downto 8 ) <= "0100100" ;
-					when 3 => digit ( 14 downto 8 ) <= "0110000" ;
-					when 4 => digit ( 14 downto 8 ) <= "0011001" ;
-					when 5 => digit ( 14 downto 8 ) <= "0010010" ;
-					when 6 => digit ( 14 downto 8 ) <= "0000010" ;
-					when 7 => digit ( 14 downto 8 ) <= "1111000" ;
-					when 8 => digit ( 14 downto 8 ) <= "0000000" ;
-					when 9 => digit ( 14 downto 8 ) <= "0010000" ;
-					when others => licznik2 <= 0 ;
-										licznik3 <= licznik3 + 1;
-				end case ;	
-				
-				case licznik3 is
-					when 0 => digit ( 22 downto 16 ) <= "1000000" ;						-- do digita
-					when 1 => digit ( 22 downto 16 ) <= "1111001" ;
-					when 2 => digit ( 22 downto 16 ) <= "0100100" ;
-					when 3 => digit ( 22 downto 16 ) <= "0110000" ;
-					when 4 => digit ( 22 downto 16 ) <= "0011001" ;
-					when 5 => digit ( 22 downto 16 ) <= "0010010" ;
-					when 6 => digit ( 22 downto 16 ) <= "0000010" ;
-					when 7 => digit ( 22 downto 16 ) <= "1111000" ;
-					when 8 => digit ( 22 downto 16 ) <= "0000000" ;
-					when 9 => digit ( 22 downto 16 ) <= "0010000" ;
-					when others => licznik3 <= 0 ;
-										licznik4 <= licznik4 + 1;	
-				end case;
-					
-				case licznik4 is
-					when 0 => digit ( 30 downto 24  ) <= "1000000" ;						-- do digita
-					when 1 => digit ( 30 downto 24  ) <= "1111001" ;
-					when 2 => digit ( 30 downto 24  ) <= "0100100" ;
-					when 3 => digit ( 30 downto 24  ) <= "0110000" ;
-					when 4 => digit ( 30 downto 24  ) <= "0011001" ;
-					when 5 => digit ( 30 downto 24  ) <= "0010010" ;
-					when others => digit(31 downto 0) <= "10111111001111111011111110111111";	-- --.-- 					
+						case licznik3 is
+							when 0 => digit ( 22 downto 16 ) <= "1000000" ;						-- do digita
+							when 1 => digit ( 22 downto 16 ) <= "1111001" ;
+							when 2 => digit ( 22 downto 16 ) <= "0100100" ;
+							when 3 => digit ( 22 downto 16 ) <= "0110000" ;
+							when 4 => digit ( 22 downto 16 ) <= "0011001" ;
+							when 5 => digit ( 22 downto 16 ) <= "0010010" ;
+							when 6 => digit ( 22 downto 16 ) <= "0000010" ;
+							when 7 => digit ( 22 downto 16 ) <= "1111000" ;
+							when 8 => digit ( 22 downto 16 ) <= "0000000" ;
+							when 9 => digit ( 22 downto 16 ) <= "0010000" ;
+							when others => licznik3 <= 0 ;
+												licznik4 <= licznik4 + 1;	
+						end case;
+							
+						case licznik4 is
+							when 0 => digit ( 30 downto 24  ) <= "1000000" ;						-- do digita
+							when 1 => digit ( 30 downto 24  ) <= "1111001" ;
+							when 2 => digit ( 30 downto 24  ) <= "0100100" ;
+							when 3 => digit ( 30 downto 24  ) <= "0110000" ;
+							when 4 => digit ( 30 downto 24  ) <= "0011001" ;
+							when 5 => digit ( 30 downto 24  ) <= "0010010" ;
+							when others => digit(31 downto 0) <= "10111111001111111011111110111111";	-- --.-- 					
 
-				end case;		 
-			
-				licznik1 <= licznik1 + 1 ;
+						end case;		 
+						end if;
 				
 			end if;
 					
