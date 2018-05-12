@@ -293,10 +293,12 @@ begin
 				stan <= 0 ;	
 			end if;
 			
-			if  btn_mod = '1' and wcisnieto = '0' then
+			if btn_mod = '1' and wcisnieto = '1' then
+			
+			elsif  btn_mod = '1' then
 				stan <= stan + 1;
 				wcisnieto <= '1' ;
-			elsif btn_mod = '0' and wcisnieto = '1' then
+			elsif btn_mod = '0' then
 				wcisnieto <= '0';
 			end if;
 			
