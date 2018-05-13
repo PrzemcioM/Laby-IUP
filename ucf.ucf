@@ -1,0 +1,31 @@
+#########################################################################################
+# Clock:
+NET "clk_i" LOC = "T9" ; # 50 MHz clock
+#########################################################################################
+
+# Seven-segment LED display:
+NET "an_d<3>" LOC = "E13" ; # leftmost digit, active low
+NET "an_d<2>" LOC = "F14" ; # active low
+NET "an_d<1>" LOC = "G14" ; # active low
+NET "an_d<0>" LOC = "d14" ; # rightmost digit, active low
+#
+NET "wys<0>" LOC = "E14" ; # segment 'a', active low
+NET "wys<1>" LOC = "G13" ; # segment 'b', active low
+NET "wys<2>" LOC = "N15" ; # segment 'c', active low
+NET "wys<3>" LOC = "P15" ; # segment 'd', active low
+NET "wys<4>" LOC = "R16" ; # segment 'e', active low
+NET "wys<5>" LOC = "F13" ; # segment 'f', active low
+NET "wys<6>" LOC = "N16" ; # segment 'g', active low
+NET "dp" LOC = "P16" ; # segment 'dp', active low
+#########################################################################################
+
+#########################################################################################
+# Push-buttons:
+NET "rst" LOC = "L14" ; # BTN3 active high
+#########################################################################################
+
+#########################################################################################
+# PS2 port:
+NET "ps2_clk_i" LOC = "M16" ; #clock from PS/2
+NET "ps2_data_i" LOC = "M15" ; #PS/2 data
+#########################################################################################
