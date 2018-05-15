@@ -247,7 +247,7 @@ begin
 	--------- PORT MAP ---------
 	
 		dzielnik_1k : dzielnik 
-		generic map ( 50 )				-- POD TESTBENCH 50 w nawias | do symulacji 50000
+		generic map ( 50000)				-- POD TESTBENCH 50 w nawias | do symulacji 50000
 		port map ( 				-- dzielnik 1kHz , domyslny do wyswietlacza
 			rst_i => rst_i  ,
 			clk_i => clk_i,
@@ -276,7 +276,7 @@ begin
 		);
 		
 		dzielnik_100hz : dzielnik 
-			generic map ( 500 )				-- POD TESTBENCH 500 w nawias | do symulacji 500000
+			generic map ( 500000 )				-- POD TESTBENCH 500 w nawias | do symulacji 500000
 		port map (
 			rst_i => rst_i  ,
 			clk_i => clk_i,
@@ -289,27 +289,23 @@ begin
 	licznik : process ( clk_100hz , rst_i )
 		begin
 			
-			if stan = 3 then
-				stan <= 0 ;	
-			end if;
-			
-			if btn_mod = '1' and wcisnieto = '1' then
-			
-			elsif  btn_mod = '1' then
-				stan <= stan + 1;
-				wcisnieto <= '1' ;
-			elsif btn_mod = '0' then
-				wcisnieto <= '0';
-			end if;
-			
-			if rst_i = '1' or stan = 0 or stan = 3 then 
-				licznik1 <= 0;
-				licznik2 <= 0;
-				licznik3 <= 0;
-				licznik4 <= 0;
-				digit <= "11000000010000001100000011000000";			-- 00.00
-			
-			elsif rising_edge ( clk_100hz ) then				-- uzupelnic o przycisk btn_mod
+			if rising_edge ( clk_100hz ) then				-- uzupelnic o przycisk btn_mod
+		
+					if rst_i = '1' or stan = 3 then 
+						licznik1 <= 0;
+						licznik2 <= 0;
+						licznik3 <= 0;
+						licznik4 <= 0;
+						digit <= "11000000010000001100000011000000";			-- 00.00
+						stan <= 0;
+					end if;
+					
+						if  btn_mod = '1' and wcisnieto = '0' then
+								stan <= stan + 1;
+								wcisnieto <= '1' ;
+						elsif btn_mod = '0' then
+								wcisnieto <= '0';
+						end if;
 		
 					if stan = 1 then
 						case licznik1 is														-- zapalamy stanem niskim !
@@ -376,13 +372,13 @@ begin
 							when 5 => digit ( 30 downto 24  ) <= "0010010" ;
 							when others => digit(31 downto 0) <= "10111111001111111011111110111111";	-- --.-- 					
 
-						end case;		 
-						end if;
+						end case;
+
+						elsif stan = 2 then 
+					end if;
 				
+			digit(23) <= '0' ; 							-- staly przecinek przy 2 liczbie od lewej, bo jest zawsze
 			end if;
-					
-					digit(23) <= '0' ; 							-- staly przecinek przy 2 liczbie od lewej, bo jest zawsze
-		
 		end process licznik ;
 
 end Behavioral;
