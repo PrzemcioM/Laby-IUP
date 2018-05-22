@@ -6,8 +6,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
-entity dzielnik is generic ( constant CntSize : integer := 50000); -- aby 1kHz - 50000
-						port ( 
+entity dzielnik is generic ( constant CntSize : integer := 50000000);
+						port ( 			
 							rst_i : in std_logic := '0';
 							clk_i : in std_logic := '0' ;
 							clk_dz : out std_logic := '0'
@@ -16,7 +16,6 @@ end dzielnik;
 
 architecture Behavioral of dzielnik is
 
- 
 shared variable licznik :  integer  := 0 ; 
 signal stan : std_logic := '0';
 
@@ -48,60 +47,6 @@ end Behavioral;
 
 -------------------------- koniec dzielnika ------------------------- 
 
--------------------------- debouncer --------------------------------
-
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_ARITH.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
-
-entity debouncer is
-
-Port (
-		btn_i : in std_logic ;
-		clk_i : in std_logic ;
-		
-		btn_stable_port : out std_logic 
-		);
-end debouncer ;
-
-architecture Behavioral of debouncer is 
-
-signal tmp : std_logic := '0' ;
-signal btn_synch : std_logic := '0' ;
-signal btn_stable_signal : std_logic := '0' ;
-
-begin 
-	process (clk_i) is
-	
-	variable delay_cntr : integer range 0 to 63 := 0;
-	
-	begin 
-		if rising_edge(clk_i) then
-		tmp <= btn_i ;
-		btn_synch <= tmp;
-		
-		if ( btn_synch = btn_stable_signal ) then
-			delay_cntr := 0;
-		else 
-			delay_cntr := delay_cntr + 1;
-		end if;
-		
-		if ( delay_cntr = 63 ) then
-			btn_stable_signal <= btn_synch ;
-			delay_cntr := 0;
-			
-		end if;
-	end if;
-	end process;
-	
-	btn_stable_port <= btn_stable_signal ;
-	
-	end Behavioral;
-	
-	
--------------------------- koniec debouncer -------------------------
-
 -------------------------- wyswietlacz ------------------------------
 
 library IEEE;
@@ -126,7 +71,6 @@ end wyswietlacz;
 architecture Behavioral of wyswietlacz is
 
 shared variable licznik_multi : integer  := 0 ;
-shared variable poczatek_multi : integer := 0 ;
 
 	begin
 				
@@ -157,8 +101,6 @@ shared variable poczatek_multi : integer := 0 ;
 								
 			end if;
 			
-		--end if;
-		
 				licznik_multi  := licznik_multi  + 1 ;
 				 
 				if licznik_multi = 4 then
@@ -172,33 +114,28 @@ end Behavioral;
 
 ------------------------- koniec wyswietlacza -----------------------
 
-
------------------------- PROGRAM GLOWNY -----------------------------
-
+------------------------- Program glowny ----------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
-
 entity Modul is
-	port (
-	  
-		btn_i : in std_logic_vector( 3 downto 0 ) := "0000" ;
-		sw_i  : in std_logic_vector( 7 downto 0 ) := "00000000" ;
-	   rst_i : in std_logic := '0' ;
-		clk_i : in std_logic;
-	
-		led7_seg_o : out std_logic_vector (7 downto 0 ) := "11111111" ;
-		led7_an_o  : out std_logic_vector (3 downto 0)	:= "1111" 	
-		
-		);
-	
+	    Port ( 
+			  clk_i : in  STD_LOGIC;
+           rst_i : in  STD_LOGIC;
+           led7_an_o : out  STD_LOGIC_VECTOR (3 downto 0);
+           led7_seg_o : out  STD_LOGIC_VECTOR (7 downto 0);
+           ps2_clk_i : in  STD_LOGIC;
+           ps2_data_i : in  STD_LOGIC
+			  );
+
 end Modul;
 
 architecture Behavioral of Modul is
-	
+
 	component dzielnik is 
+		generic ( CntSize : integer := 50000 );
 		port (
 				rst_i : in std_logic;
 				clk_i : in std_logic;
@@ -214,143 +151,131 @@ architecture Behavioral of Modul is
 				led7_an_wysw  : out std_logic_vector (3 downto 0) := "1111" ;
 				
 				clk_wys : in std_logic ;
-				
 				digit_i_wysw : in std_logic_vector(31 downto 0 )
-				
-				
 				);
 				
 	end component wyswietlacz;
-	
-	component debouncer is
-		port (
-		btn_i : in std_logic ;
-		clk_i : in std_logic ;
-		
-		btn_stable_port : out std_logic 
-		
-		);
-		
-end component debouncer ;
 
-	signal clk : std_logic ;
-	signal digit : std_logic_vector ( 31 downto 0 ) := "11111111111111111111111111111111";
-	signal wektor_zdekodowany : std_logic_vector  ( 6 downto 0 ) := "0000000" ;
-	signal ready: std_logic := '1' ;
+	-- sygnaly programu glownego ( signal )
+	
+	signal clk : std_logic := '0' ;
+	signal digit : std_logic_vector( 31 downto 0 ) := "11111111111111111111111111111111" ;                                                  
+	signal data : std_logic_vector ( 10 downto 0 ) := "00000000000" ;
+	signal stan : integer := 0 ; 
+	signal break : std_logic := '1' ;
+	signal data_old : std_logic_vector( 8 downto 1 ) := "00000000" ;
+	signal data_old2 : std_logic_vector( 8 downto 1 ) := "00000000" ;
+	signal data_pamietaj : std_logic_vector( 8 downto 1 ) := "00000000" ;
+	---
 
 begin
 
 	--------- PORT MAP ---------
-	
-		dziel : dzielnik port map ( 
-			rst_i => '0' ,
+
+	dzielnik_1k : dzielnik 
+		generic map ( 50000 )				
+		port map ( 				-- dzielnik 1kHz , domyslny do wyswietlacza
+			rst_i => rst_i  ,
 			clk_i => clk_i,
 			clk_dz => clk 
-	
-				);	
+	);	
+
+	wysw: wyswietlacz port map (
 		
-		wysw: wyswietlacz port map (
-		
-			rst_i => '0' ,
+			rst_i => rst_i ,
 			led7_seg_wysw => led7_seg_o ,
 			led7_an_wysw => led7_an_o ,
 			
-			clk_wys => clk ,
+			clk_wys => clk,
 			
 			digit_i_wysw => digit			
-		);
-		
-		--deb : debouncer port map (
-		
-			
-		--);
-				
-	
+	);
+
 	----------------------------
-
-	enkoder : process ( sw_i  )
-		begin
+	
+	glowny : process ( ps2_clk_i , rst_i )
+	
+	variable n : integer range 1 to 8 := 1 ;
+	
+	begin
+		if rst_i = '1' then 
+			stan <= 0 ;
+			data( 10 downto 0 ) <= "00000000000" ;
+			break <= '0' ;
 		
-				if sw_i ( 3 downto 0 ) = "0000" then  				-- 4 mlodsze to 4 bitowa liczba 		
-					wektor_zdekodowany ( 6 downto 0 ) <= "0100000" ;     --( 6 => '1' , others => '0' )		-- 0 
-				
-				elsif sw_i( 3 downto 0 ) = "0001" then			-- 1  
-					wektor_zdekodowany ( 6 downto 0 ) <= "1111001" ; 							--( 1,2 => '0' , others => '1' );
-				
-				elsif sw_i ( 3 downto 0 ) = "0010" then			-- 2 
-					wektor_zdekodowany ( 6 downto 0 ) <= "0100100" ; 							--( 5,2 => '1' , others => '0' );
-					
-				elsif sw_i ( 3 downto 0 ) = "0011" then			-- 3 
-					wektor_zdekodowany ( 6 downto 0 ) <= "0110000" ; 							--( 5,4 => '1' , others => '0' );
-
-				elsif sw_i( 3 downto 0 ) = "0100" then			-- 4 
-					wektor_zdekodowany ( 6 downto 0 ) <= "0011001" ; 							--( 0,3,4 => '1' , others => '0' );
-
-				elsif sw_i( 3 downto 0 ) = "0101" then			-- 5 
-					wektor_zdekodowany ( 6 downto 0 ) <= "0010010"; 							--( 1,4 => '1' , others => '0' );
-
-				elsif sw_i( 3 downto 0 ) = "0110" then			-- 6 
-					wektor_zdekodowany ( 6 downto 0 ) <= "0000010" ;  						--( 1 => '1' , others => '0' );
-
-				elsif sw_i ( 3 downto 0 ) = "0111" then			-- 7 
-					wektor_zdekodowany ( 6 downto 0 ) <= "1111000" ; 							--( 0,1,2 => '0' , others => '1' );
-
-				elsif sw_i ( 3 downto 0 ) = "1000" then			-- 8 
-					wektor_zdekodowany ( 6 downto 0 ) <= "0000000" ; 							--(  others => '0' );
-
-				elsif sw_i ( 3 downto 0 ) = "1001" then			-- 9 
-					wektor_zdekodowany ( 6 downto 0 ) <= "0010000" ;  						--( 4 => '1' , others => '0' );
-
-				elsif sw_i( 3 downto 0 ) = "1010" then			-- A
-					wektor_zdekodowany ( 6 downto 0 ) <= "0001000" ; 							--( 3 => '1' , others => '0' );
-
-				elsif sw_i( 3 downto 0 ) = "1011" then			-- B
-					wektor_zdekodowany ( 6 downto 0 ) <= "0000011" ;							-- ( 0,1 => '1' , others => '0' );
-
-				elsif sw_i ( 3 downto 0 ) = "1100" then			-- C
-					wektor_zdekodowany( 6 downto 0 ) <= "0111001" ; 							--( 1,2,6 => '0' , others => '1' );
-
-				elsif sw_i ( 3 downto 0 ) = "1101" then			-- D
-					wektor_zdekodowany( 6 downto 0 ) <= "0100001" ; 							--( 0,5 => '1' , others => '0' );
-
-				elsif sw_i ( 3 downto 0 ) = "1110" then			-- E
-					wektor_zdekodowany ( 6 downto 0 ) <= "0000110" ; 							--( 1,2 => '1' , others => '0' );
-
-				elsif sw_i ( 3 downto 0 ) = "1111" then			-- F
-					wektor_zdekodowany ( 6 downto 0 ) <= "0001110" ; 							--( 1,2,3 => '1' , others => '0' );				
-						
-				end if;
-				
-	end process enkoder ;	
-
-	pamiec : process ( clk ) 
-		begin
-			if rising_edge ( clk ) then
-					if   btn_i(0) = '1' and ready = '1' then		
-						digit ( 6 downto 0 ) <= wektor_zdekodowany ( 6 downto 0 );
-							ready <= '0' ;
-					elsif  btn_i(1) = '1'  and ready = '1' then
-						digit ( 14 downto 8 ) <= wektor_zdekodowany ( 6 downto 0 );
-								ready <= '0' ;
-					elsif  btn_i(2) = '1' and ready = '1' then
-						digit( 22 downto 16 ) <= wektor_zdekodowany ( 6 downto 0 );
-								ready <= '0' ;
-					elsif btn_i(3) = '1'  and ready = '1' then
-						digit ( 30 downto 24 ) <= wektor_zdekodowany ( 6 downto 0 );
-								ready <= '0' ;
+		elsif falling_edge( ps2_clk_i ) then
+			
+			if stan = 0 then							-- stan opisujacy poczatek czytania z klawiatury
+			
+				data( 10 downto 0 ) <= "00000000000" ;
+			
+					if ps2_data_i = '0' then
+						data(0) <= ps2_data_i;			-- zapisuje bit startu do data
+						stan <= 1 ;
 					end if;
-					
-			if btn_i = "0000" then
-				ready <= '1';
+			
+			elsif stan = 1 then						-- zczytuje data(8-1)
+			
+				data(n) <= ps2_data_i ;
+				
+				if n = 8 then
+					stan <= 2;
+					n := 1;
+				else
+					n := n + 1;
+				end if;
+			
+			elsif stan = 2 then						-- kontrola bitu parzystosci
+				
+				data(9)	<= ps2_data_i;
+				
+				if ps2_data_i = ( data(1) xnor data(2) xnor data(3) xnor data(4) xnor data(5) xnor data(6) xnor data(7) xnor data(8)) then  
+					stan <= 3 ;
+				else 
+					stan <= 0 ;
+				end if;
+
+			elsif stan = 3 then						-- stan przypisan
+			
+				data(10) <= ps2_data_i ;		-- zapisujemy bit stopu czyli '1'
+				
+				if data_old(8 downto 1 ) = "11110000" and break = '0' then				-- break -> F0
+					break <= '1' ;
+				
+				elsif ( break = '1' and data_pamietaj(8 downto 1) = data_old(8 downto 1) ) or data_pamietaj = "0000000"  then 
+					case  data(8 downto 1)  is						-- od 1 do 8 bitu - bity danych 
+				
+						when "01000101" => 	digit(6 downto 0 ) <= "1000000"; -- 0 45				-- sprawdzic te "" po lewej 
+						when "00010110" => 	digit(6 downto 0 ) <= "1111001"; -- 1 16
+						when "00011110" => 	digit(6 downto 0 ) <= "0100100"; -- 2 1E
+						when "00100110" =>	digit(6 downto 0 ) <= "0110000"; --3 26	
+						when "00100101" =>	digit(6 downto 0 ) <= "0011001"; --4 25
+						when "00101110" =>	digit(6 downto 0 ) <= "0010010"; --5 2E
+						when "00110110" =>	digit(6 downto 0 ) <= "0000010"; --6 36
+						when "00111101" =>	digit(6 downto 0 ) <= "1111000"; --7 3D
+						when "00111110" =>	digit(6 downto 0 ) <= "0000000"; --8 3E
+						when "01000110" =>	digit(6 downto 0 ) <= "0010000"; --9 46
+						when "00011100" =>	digit(6 downto 0 ) <= "0001000"; --A 1C
+						when "00110010" =>	digit(6 downto 0 ) <= "0000011"; --B 32
+						when "00100001" =>	digit(6 downto 0 ) <= "1000110"; --C 21
+						when "00100011" => 	digit(6 downto 0 ) <= "0100001"; --D 23
+						when "00100100" =>	digit(6 downto 0 ) <= "0000110"; --E 24
+						when "00101011" =>	digit(6 downto 0 ) <= "0001110"; --F 2B
+						when others  	 =>	digit(6 downto 0 ) <= "1111111";
+					end case;
+					break <= '0' ;
+					data_pamietaj(8 downto 1) <= data(8 downto 1);
+			  end if;
+			  
+			data_old( 8 downto 1 ) <= data(8 downto 1 ) ; 
+			data_old2(8 downto 1 ) <= data_old(8 downto 1);
+			stan <= 0 ;
+			
 			end if;
 		end if;
-	end process pamiec;
-	
-		digit(7) <= not sw_i(4); 
-		digit(15) <= not sw_i(5); 
-		digit(23) <= not sw_i(6); 
-		digit(31) <= not sw_i(7);
-	
-end Behavioral;
 
+			digit( 31 downto 7 )<= "1111111111111111111111111" ;
+
+	end process;
+end Behavioral;
 
