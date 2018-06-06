@@ -1,0 +1,7 @@
+# Clock:
+NET "clk_i" LOC = "T9" ; # 50 MHz clock
+# Push-buttons:
+NET "rst_i" LOC = "L14" ; # pressed high BTN3
+# RS232:
+NET "TXD_o" LOC = "R13" ; # RS 232 TXD
+NET "RXD_i" LOC = "T13" ; # RS 232 RXD
