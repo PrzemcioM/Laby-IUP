@@ -21,7 +21,7 @@ signal C: STD_LOGIC:='0';
 signal zmianaRS: STD_LOGIC:='1';
 signal stan: integer range 0 to 6:=0;
 signal licznik: integer range 0 to 50000000:=0;
-constant N: integer:=2604;
+constant N: integer:=5208;
 signal dane :  STD_LOGIC_VECTOR (7 downto 0):="00000000";
 signal licznik_dane: integer range 0 to 7:=0;
 begin
