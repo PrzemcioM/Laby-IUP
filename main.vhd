@@ -7,6 +7,9 @@ entity main is
     Port ( clk_i : in  STD_LOGIC;
            rst_i : in  STD_LOGIC;
            TXD_o : out  STD_LOGIC := '1';
+			  bit_start : in STD_LOGIC;
+			  bit_stop : in STD_LOGIC;
+			  data : in STD_LOGIC;
            RXD_i : in  STD_LOGIC
 			  );
 end main;
@@ -15,10 +18,10 @@ architecture Behavioral of main is
 signal A: STD_LOGIC:='0';
 signal B: STD_LOGIC:='0';
 signal C: STD_LOGIC:='0';
-signal zmiennaRS: STD_LOGIC:='1';
+signal zmianaRS: STD_LOGIC:='1';
 signal stan: integer range 0 to 6:=0;
 signal licznik: integer range 0 to 50000000:=0;
-constant N: integer:=5208;
+constant N: integer:=2604;
 signal dane :  STD_LOGIC_VECTOR (7 downto 0):="00000000";
 signal licznik_dane: integer range 0 to 7:=0;
 begin
@@ -26,10 +29,10 @@ begin
 RS: process (licznik)
 begin
 	if licznik = 0  then
-		if zmiennaRS = '0' then
-			zmiennaRS <= '1';
-		elsif zmiennaRS = '1' then 
-			zmiennaRS <= '0';
+		if zmianaRS= '0' then
+			zmianaRS <= '1';
+		elsif zmianaRS = '1' then 
+			zmianaRS <= '0';
 		end if;
 	end if;
 end process;
@@ -56,7 +59,7 @@ begin
 			 end if;
 			 when 1 => 
 			 if licznik=N/2 then
-				stan<=2; -- Pocz¹tek odczytu
+				stan<=2; -- PoczÄ…tek odczytu
 				licznik <= 0;
 				else
 				licznik <= licznik + 1;
@@ -77,7 +80,7 @@ begin
 			 when 3 =>
 				if licznik=N then
 					stan <= 4;
-					dane <= dane + "00100000";
+					dane <= dane;
 					TXD_o<='1';
 					licznik<=0;
 				else
