@@ -15,6 +15,9 @@ ARCHITECTURE behavior OF test IS
          clk_i : IN  std_logic;
          rst_i : IN  std_logic;
          TXD_o : OUT  std_logic;
+			bit_start : IN std_logic;
+			bit_stop : IN std_logic;
+			data : IN std_logic;
          RXD_i : IN  std_logic
         );
     END COMPONENT;
@@ -24,10 +27,12 @@ ARCHITECTURE behavior OF test IS
    signal clk_i : std_logic := '0';
    signal rst_i : std_logic := '0';
    signal RXD_i : std_logic := '0';
+	signal bit_start : std_logic := '0';
+	signal bit_stop : std_logic := '0';
+	signal data : std_logic := '0';
 
  	--Outputs
    signal TXD_o : std_logic;
-   signal led_o : std_logic_vector(7 downto 0);
 
    -- Clock period definitions
    constant clk_i_period : time := 20ns;
@@ -40,6 +45,9 @@ BEGIN
           clk_i => clk_i,
           rst_i => rst_i,
           TXD_o => TXD_o,
+			 bit_start => bit_start,
+			 bit_stop => bit_stop,
+			 data => data,
           RXD_i => RXD_i
         );
 
@@ -60,24 +68,62 @@ BEGIN
      RXD_i <= '1';
 	  wait for period*5;
 	  RXD_i <= '0';
+	  bit_start <='1';
 	  wait for period;
 	  RXD_i <= '1';
+	  bit_start <='0';
+	  data <='1';
 	  wait for period;
 	  RXD_i <= '1';
+	  data <='0';
 	  wait for period;
 	  RXD_i <= '0';
+	  data <='1';
 	  wait for period;
 	  RXD_i <= '1';
+	  data <='0';
 	  wait for period;
 	  RXD_i <= '0';
+	  data <='1';
 	  wait for period;
 	  RXD_i <= '0';
+	  data <='0';
 	  wait for period;
 	  RXD_i <= '0';
+	  data <='1';
 	  wait for period;
 	  RXD_i <= '0';
+	  data <='0';
 	  wait for period;
 	  RXD_i <= '1';
+	  bit_stop <='1';
+	  wait for period;
+	  bit_stop <='0';
+	  
+	  wait for period/2;
+	  bit_start <='1';
+	  wait for period;
+	  bit_start <='0';
+	  data <='1';
+	  wait for period;
+	  data <='0';
+	  wait for period;
+	  data <='1';
+	  wait for period;
+	  data <='0';
+	  wait for period;
+	  data <='1';
+	  wait for period;
+	  data <='0';
+	  wait for period;
+	  data <='1';
+	  wait for period;
+	  data <='0';
+	  wait for period;
+	  bit_stop <='1';
+	  wait for period;
+	  bit_stop <='0';
+	  
       -- insert stimulus here 
 
       wait;
